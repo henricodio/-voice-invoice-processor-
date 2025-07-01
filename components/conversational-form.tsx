@@ -1,3 +1,4 @@
+"use client";
 import { botScripts, Question } from "@/config/bot-questions";
 import { useEffect, useState, useCallback } from "react";
 import { AudioRecorder } from "@/components/audio-recorder";
