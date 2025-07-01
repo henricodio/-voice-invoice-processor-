@@ -15,7 +15,7 @@ interface AudioRecorderProps {
   onTranscriptionComplete: (text: string) => void
 }
 
-export default function AudioRecorder({ onTranscriptionComplete }: AudioRecorderProps) {
+export function AudioRecorder({ onTranscriptionComplete }: AudioRecorderProps) {
   const [isRecording, setIsRecording] = useState(false)
   const [status, setStatus] = useState<"idle" | "recording" | "editing" | "uploading" | "transcribing" | "playing" | "paused">("idle")
   const [isPlaying, setIsPlaying] = useState(false)

@@ -1,9 +1,9 @@
 import { botScripts, Question } from "@/config/bot-questions";
 import { useEffect, useState } from "react";
-import AudioRecorder from "@/components/audio-recorder";
+import { AudioRecorder } from "@/components/audio-recorder";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, ChevronLeft, Mic } from "lucide-react";
+import { Check, ChevronLeft, Mic, Volume2 } from "lucide-react";
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
 
 interface ConversationalFormProps {
@@ -61,7 +61,17 @@ export function ConversationalForm({ documentType, onComplete, onBack }: Convers
       <CardContent className="flex flex-col items-center space-y-6">
         {!isCompleted ? (
           <>
-            <p className="text-xl text-center font-medium">{currentQuestion.question}</p>
+            <div className="flex items-center justify-center space-x-2">
+              <p className="text-xl text-center font-medium">{currentQuestion.question}</p>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => speak(currentQuestion.question)}
+                aria-label="Leer pregunta en voz alta"
+              >
+                <Volume2 className="h-6 w-6" />
+              </Button>
+            </div>
             <AudioRecorder onTranscriptionComplete={handleTranscriptionComplete} />
             <div className="w-full pt-4">
               <h4 className="font-semibold mb-2">Respuestas:</h4>
