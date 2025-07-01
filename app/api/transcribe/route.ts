@@ -62,6 +62,7 @@ async function getAccessToken() {
         throw new Error('No se pudo obtener el token de acceso de Google.');
     }
 
+    console.log("Token de acceso obtenido con éxito.");
     const tokenData = await tokenResponse.json();
     return tokenData.access_token;
   } catch (error) {
@@ -71,20 +72,29 @@ async function getAccessToken() {
 }
 
 export async function POST(request: NextRequest) {
+  console.log("API de transcripción iniciada.");
   try {
     const formData = await request.formData();
     const audioFile = formData.get("audio") as File;
 
     if (!audioFile) {
+      console.error("No se encontró archivo de audio en la solicitud.");
       return NextResponse.json({ error: "No se encontró archivo de audio" }, { status: 400 });
     }
+
+    console.log(`Archivo de audio recibido, tamaño: ${audioFile.size}, tipo: ${audioFile.type}`);
 
     // Convertir el archivo a base64 para enviarlo a Google Cloud Speech-to-Text
     const arrayBuffer = await audioFile.arrayBuffer();
     const audioBytes = Buffer.from(arrayBuffer).toString("base64");
 
+    console.log("Archivo de audio convertido a base64.");
+
     // Obtener el token de acceso
+    console.log("Obteniendo token de acceso para la API de Google Cloud.");
     const accessToken = await getAccessToken();
+
+    console.log("Token de acceso obtenido, configurando solicitud a Google Cloud Speech-to-Text.");
 
     // Configuración para Google Cloud Speech-to-Text
     const speechRequest = {
@@ -100,6 +110,7 @@ export async function POST(request: NextRequest) {
       },
     };
 
+    console.log("Enviando solicitud a la API de Google Cloud Speech-to-Text.");
     // Llamada a Google Cloud Speech-to-Text API con el token de acceso
     const response = await fetch(
       `https://speech.googleapis.com/v1/speech:recognize`,
@@ -119,11 +130,14 @@ export async function POST(request: NextRequest) {
       throw new Error("Error en la API de Google Cloud Speech");
     }
 
+    console.log("Respuesta de la API de Google Cloud Speech exitosa.");
+
     const result = await response.json();
 
     // Extraer la transcripción del resultado
     const transcription = result.results?.map((result: any) => result.alternatives[0]?.transcript).join(" ") || "";
 
+    console.log("Transcripción exitosa, devolviendo resultado.");
     return NextResponse.json({ transcription });
   } catch (error) {
     console.error("Error en transcripción:", error);

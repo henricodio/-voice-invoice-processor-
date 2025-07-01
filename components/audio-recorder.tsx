@@ -132,7 +132,9 @@ export function AudioRecorder({ onTranscriptionComplete }: AudioRecorderProps) {
       })
 
       if (!response.ok) {
-        throw new Error("Error en la transcripción")
+        const errorBody = await response.json().catch(() => ({ error: "No se pudo leer el cuerpo del error." }));
+        console.error("La API de transcripción respondió con un error:", response.status, errorBody);
+        throw new Error(errorBody.error || `Error del servidor: ${response.status}`);
       }
 
       const data = await response.json()
