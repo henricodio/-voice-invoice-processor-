@@ -1,6 +1,10 @@
 [build]
-  command = "next build"
+  command = "pnpm install --no-frozen-lockfile && next build"
   publish = ".next"
+  environment = { NETLIFY_USE_PNPM = "true", NETLIFY_PNPM_FLAGS = "--no-frozen-lockfile" }
+
+[build.cache]
+  enabled = false
 
 # Configuración para Next.js App Router
 [[plugins]]
