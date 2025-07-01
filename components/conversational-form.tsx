@@ -4,6 +4,7 @@ import AudioRecorder from "@/components/audio-recorder";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, ChevronLeft, Mic } from "lucide-react";
+import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
 
 interface ConversationalFormProps {
   documentType: 'factura' | 'cliente';
@@ -16,10 +17,19 @@ export function ConversationalForm({ documentType, onComplete, onBack }: Convers
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [isCompleted, setIsCompleted] = useState(false);
+  const { speak } = useSpeechSynthesis();
 
   useEffect(() => {
     setQuestions(botScripts[documentType]);
   }, [documentType]);
+
+  // Efecto para leer la pregunta actual en voz alta
+  useEffect(() => {
+    if (questions.length > 0 && !isCompleted) {
+      const currentQuestionText = questions[currentQuestionIndex].question;
+      speak(currentQuestionText);
+    }
+  }, [currentQuestionIndex, questions, isCompleted, speak]);
 
   const handleTranscriptionComplete = (transcription: string) => {
     const currentQuestion = questions[currentQuestionIndex];
@@ -31,6 +41,7 @@ export function ConversationalForm({ documentType, onComplete, onBack }: Convers
     } else {
       setIsCompleted(true);
       onComplete(newAnswers);
+      speak("¡Todos los datos han sido registrados con éxito!");
     }
   };
 
