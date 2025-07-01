@@ -1,10 +1,9 @@
 import { botScripts, Question } from "@/config/bot-questions";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { AudioRecorder } from "@/components/audio-recorder";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, ChevronLeft, Mic, Volume2 } from "lucide-react";
-import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
 
 interface ConversationalFormProps {
   documentType: 'factura' | 'cliente';
@@ -17,19 +16,45 @@ export function ConversationalForm({ documentType, onComplete, onBack }: Convers
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [isCompleted, setIsCompleted] = useState(false);
-  const { speak, isReady } = useSpeechSynthesis();
+
+  // --- Speech Synthesis Logic Embedded Directly ---
+  const [isSpeechReady, setIsSpeechReady] = useState(false);
+
+  const speak = useCallback(async (text: string) => {
+    if (!text || !isSpeechReady || typeof window === 'undefined' || !window.speechSynthesis) {
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+    const spanishVoice = voices.find(v => v.lang.startsWith('es-ES')) || voices.find(v => v.lang.startsWith('es'));
+    if (spanishVoice) utterance.voice = spanishVoice;
+    window.speechSynthesis.speak(utterance);
+  }, [isSpeechReady]);
+
+  useEffect(() => {
+    const checkVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        setIsSpeechReady(true);
+      } 
+    };
+    window.speechSynthesis.onvoiceschanged = checkVoices;
+    checkVoices(); // Initial check
+    return () => { window.speechSynthesis.onvoiceschanged = null; };
+  }, []);
+  // --- End of Embedded Speech Logic ---
 
   useEffect(() => {
     setQuestions(botScripts[documentType]);
   }, [documentType]);
 
-  // Efecto para leer la pregunta actual en voz alta
   useEffect(() => {
-    if (isReady && questions.length > 0 && !isCompleted) {
+    if (isSpeechReady && questions.length > 0 && !isCompleted) {
       const currentQuestionText = questions[currentQuestionIndex].question;
       speak(currentQuestionText);
     }
-  }, [currentQuestionIndex, questions, isCompleted, speak, isReady]);
+  }, [currentQuestionIndex, questions, isCompleted, speak, isSpeechReady]);
 
   const handleTranscriptionComplete = (transcription: string) => {
     const currentQuestion = questions[currentQuestionIndex];
@@ -41,7 +66,7 @@ export function ConversationalForm({ documentType, onComplete, onBack }: Convers
     } else {
       setIsCompleted(true);
       onComplete(newAnswers);
-      if (isReady) {
+      if (isSpeechReady) {
         speak("¡Todos los datos han sido registrados con éxito!");
       }
     }
