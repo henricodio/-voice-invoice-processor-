@@ -1,3 +1,5 @@
+"use client"
+
 import dynamic from 'next/dynamic'
 
 // Carga dinámica del componente principal de la aplicación, deshabilitando el SSR.
